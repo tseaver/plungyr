@@ -72,6 +72,12 @@ class BadgeTests(_Base):
         post = self._makePost(user)
         self.assertEqual(badge.on_edit(user, post=post), (None, None))
 
+    def test_on_reply(self):
+        badge = self._makeOne()
+        user = self._makeUser()
+        post = self._makePost(user)
+        self.assertEqual(badge.on_reply(user, post=post), (None, None))
+
     def test_on_vote(self):
         badge = self._makeOne()
         user = self._makeUser()

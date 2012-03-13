@@ -23,6 +23,9 @@ class Badge(object):
     def on_edit(self, user, **kw):
         return None, None
 
+    def on_reply(self, user, **kw):
+        return None, None
+
     def on_vote(self, user, **kw):
         return None, None
 
@@ -208,10 +211,10 @@ def award_badges(event, user, **kw):
     for badge in BADGES:
         if not badge.can_award(user, **kw):
             continue
-        user, payload = getattr(badge, method)(user, **kw)
-        if user is not None:
-            user.badges.setdefault(badge.identifier, []).append(payload)
+        found_user, payload = getattr(badge, method)(user, **kw)
+        if found_user is not None:
+            found_user.badges.setdefault(badge.identifier, []).append(payload)
             # inactive or banned users don't get messages.
-            #if user.is_active and not user.is_banned:
-                #UserMessage(user,
+            #if found_user.is_active and not found_user.is_banned:
+                #UserMessage(found_user,
                 #            _(u'You earned the "%s" badge') % badge.name)
