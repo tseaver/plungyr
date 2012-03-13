@@ -21,13 +21,13 @@ class _Base(unittest.TestCase):
         return topic
 
     def _makePost(self, author,
-                  identifier='testpost', is_answer=False, votes=0):
+                  __name__='testpost', is_answer=False, votes=0):
         class _Post(object):
             pass
         post = _Post()
         post.author = author
         post.is_answer = is_answer
-        post.identifier = identifier
+        post.__name__ = __name__
         post.votes = votes
         return post
 
@@ -282,7 +282,7 @@ class AnswerTests(_Base):
         user = self._makeUser()
         post = self._makePost(user, is_answer=True, votes=1e6+1)
         user.badges['testing'] = ids = []
-        ids.append(post.identifier)
+        ids.append(post.__name__)
         self.failIf(badge.can_award(user, post=post))
 
     def test_on_accept(self):
@@ -291,7 +291,7 @@ class AnswerTests(_Base):
         topic = self._makeTopic(user)
         post = self._makePost(user)
         self.assertEqual(badge.on_accept(user, topic=topic, post=post),
-                        (user, post.identifier))
+                        (user, post.__name__))
 
     def test_on_vote(self):
         badge = self._makeOne()
@@ -299,7 +299,7 @@ class AnswerTests(_Base):
         topic = self._makeTopic(user)
         post = self._makePost(user)
         self.assertEqual(badge.on_vote(user, post=post, delta=1),
-                        (user, post.identifier))
+                        (user, post.__name__))
 
 
 class ReversalTests(_Base):
@@ -360,7 +360,7 @@ class ReversalTests(_Base):
         post = self._makePost(user, is_answer=True, votes=21)
         topic = self._makeTopic(user, votes=-6)
         user.badges['testing'] = ids = []
-        ids.append(post.identifier)
+        ids.append(post.__name__)
         self.failIf(badge.can_award(user, post=post, topic=topic))
 
 

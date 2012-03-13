@@ -111,13 +111,13 @@ class Answer(Badge):
         if post is None or not post.is_answer or post.votes < self._threshhold:
             return False
         # Check that this badge is not already awarded for the post
-        return not self._has_badge(user, post.identifier)
+        return not self._has_badge(user, post.__name__)
 
     def on_accept(self, user, topic, post):
-        return user, post.identifier
+        return user, post.__name__
 
     def on_vote(self, user, post, delta):
-        return user, post.identifier
+        return user, post.__name__
 
 
 class NiceAnswer(Answer):
@@ -165,7 +165,7 @@ class Reversal(Answer):
             post.votes < 20 or topic.votes > -5):
             return False
         # Check that this badge is not already awarded for the post
-        return not self._has_badge(user, post.identifier)
+        return not self._has_badge(user, post.__name__)
 
 
 class SelfLearner(Answer):
@@ -181,7 +181,7 @@ class SelfLearner(Answer):
             post.author != topic.author or post.votes < 4):
             return False
         # Check that this badge is not already awarded for the post
-        return not self._has_badge(user, post.identifier)
+        return not self._has_badge(user, post.__name__)
 
 
 BADGES = [
