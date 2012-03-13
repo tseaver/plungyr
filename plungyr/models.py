@@ -11,7 +11,7 @@ _NOW = None
 def _now():
     if _NOW is not None:
         return _NOW
-    return datetime.utcnow()
+    return datetime.utcnow() #pragma NO COVERAGE
 
 
 _EPOCH = datetime.datetime(1970, 1, 1)
