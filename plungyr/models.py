@@ -91,7 +91,8 @@ class Post(Folder):
         self.text = new_text
         self.editor = editor
         self.modified = date
-        self.topic.hotness = hotness(date, 0)
+        if self.__parent__:
+            self.__parent__.hotness = hotness(date, 0)
         self.edits += 1
 
         award_badges('edit', editor, post=self)

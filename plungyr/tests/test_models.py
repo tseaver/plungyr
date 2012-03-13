@@ -192,6 +192,53 @@ class PostTests(_Base):
         self.assertEqual(user.points, 50)
         self.assertEqual(user.badges, {}) #no badge currenly does 'on_reply'
 
+    def test_edit_no_date_no_editor_no___parent__(self):
+        from datetime import datetime
+        from datetime import timedelta
+        from pyramid.testing import DummyModel
+        from .. import models
+        BEFORE = datetime.now()
+        AFTER = BEFORE + timedelta(1)
+        user = DummyModel(points=0, badges={})
+        def touch_activity(points):
+            user.points += points
+        user.touch_activity = touch_activity
+        with _Monkey(models, _NOW=BEFORE):
+            post = self._makeOne(user, 'TEXT')
+        with _Monkey(models, _NOW=AFTER):
+            post.edit('NEW TEXT')
+        self.failUnless(post.editor is user)
+        self.assertEqual(post.modified, AFTER)
+        self.assertEqual(user.points, 70)
+        self.assertEqual(user.badges, {'editor': [None]})
+
+    def test_edit_w_date_w_editor_w___parent__(self):
+        from datetime import datetime
+        from datetime import timedelta
+        from pyramid.testing import DummyModel
+        from repoze.folder import Folder
+        from .. import models
+        parent = Folder()
+        BEFORE = datetime.now()
+        AFTER = BEFORE + timedelta(1)
+        class User(DummyModel):
+            def __init__(self):
+                self.points = 0
+                self.badges = {}
+            def touch_activity(self, points):
+                self.points += points
+        author = User()
+        editor = User()
+        with _Monkey(models, _NOW=BEFORE):
+            parent['testing'] = post = self._makeOne(author, 'TEXT')
+        post.edit('NEW TEXT', editor, AFTER)
+        self.failUnless(post.editor is editor)
+        self.assertEqual(post.modified, AFTER)
+        self.assertEqual(author.points, 50)
+        self.assertEqual(editor.points, 20)
+        self.assertEqual(editor.badges, {'editor': [None]})
+        self.failUnless('hotness' in parent.__dict__)
+
 
 class _Monkey(object):
 
