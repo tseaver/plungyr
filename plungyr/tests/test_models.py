@@ -112,6 +112,87 @@ class ProfileTests(_Base):
             self.assertEqual(profile.last_activity, AFTER)
 
 
+_marker = object()
+class PhotoTests(_Base):
+
+    def _getTargetClass(self):
+        from ..models import Photo
+        return Photo
+
+    def _makeOne(self, file=_marker):
+        if file is _marker:
+            return self._getTargetClass()()
+        return self._getTargetClass()(file)
+
+    def test_ctor_no_file(self):
+        photo = self._makeOne()
+        self.assertEqual(photo.blob, None)
+
+    def test_ctor_w_file(self):
+        from ZODB.blob import Blob
+        FILE = 'FILE'
+        photo = self._makeOne(FILE)
+        self.failUnless(isinstance(photo.blob, Blob))
+        self.assertEqual(photo.blob.open().read(), FILE)
+
+
+class PostTests(_Base):
+
+    def _getTargetClass(self):
+        from ..models import Post
+        return Post
+
+    def _makeOne(self, author, text, date=None, is_reply=True):
+        return self._getTargetClass()(author, text, date, is_reply)
+
+    def test_ctor_no_date_not_reply(self):
+        from datetime import datetime
+        from pyramid.testing import DummyModel
+        from .. import models
+        WHEN = datetime.now()
+        user = DummyModel(points=0, badges={})
+        def touch_activity(points):
+            user.points += points
+        user.touch_activity = touch_activity
+        with _Monkey(models, _NOW=WHEN):
+            post = self._makeOne(user, 'TEXT', is_reply=False)
+            self.failUnless(post.author is user)
+            self.assertEqual(post.editor, None)
+            self.assertEqual(post.text, 'TEXT')
+            self.assertEqual(post.is_deleted, False)
+            self.assertEqual(post.is_answer, False)
+            self.assertEqual(post.is_question, True)
+            self.assertEqual(post.created, WHEN)
+            self.assertEqual(post.modified, WHEN)
+            self.assertEqual(post.votes, 0)
+            self.assertEqual(post.edits, 0)
+            self.assertEqual(post.comment_count, 0)
+            self.assertEqual(user.points, 50)
+
+    def test_ctor_w_date_and_is_reply(self):
+        from datetime import datetime
+        from pyramid.testing import DummyModel
+        WHEN = datetime.now()
+        user = DummyModel(points=0, badges={})
+        def touch_activity(points):
+            user.points += points
+        user.touch_activity = touch_activity
+        post = self._makeOne(user, 'TEXT', WHEN, is_reply=True)
+        self.failUnless(post.author is user)
+        self.assertEqual(post.editor, None)
+        self.assertEqual(post.text, 'TEXT')
+        self.assertEqual(post.is_deleted, False)
+        self.assertEqual(post.is_answer, False)
+        self.assertEqual(post.is_question, False)
+        self.assertEqual(post.created, WHEN)
+        self.assertEqual(post.modified, WHEN)
+        self.assertEqual(post.votes, 0)
+        self.assertEqual(post.edits, 0)
+        self.assertEqual(post.comment_count, 0)
+        self.assertEqual(user.points, 50)
+        self.assertEqual(user.badges, {}) #no badge currenly does 'on_reply'
+
+
 class _Monkey(object):
 
     def __init__(self, module, **replacements):
