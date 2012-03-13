@@ -89,7 +89,8 @@ class ProfileTests(_Base):
 
     def test_ctor(self):
         from datetime import datetime
-        when = datetime.now()
+        from .. import models
+        WHEN = datetime.now()
         with _Monkey(models, _NOW=WHEN):
             plungyr = self._makeOne()
             self.assertEqual(plungyr.badges, {})
