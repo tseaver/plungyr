@@ -11,7 +11,7 @@ _NOW = None
 def _now():
     if _NOW is not None:
         return _NOW
-    return datetime.utcnow() #pragma NO COVERAGE
+    return datetime.datetime.utcnow() #pragma NO COVERAGE
 
 
 _EPOCH = datetime.datetime(1970, 1, 1)
@@ -39,6 +39,7 @@ class Plungyr(Folder):
 class Profile(Folder):
 
     def __init__(self):
+        super(Profile, self).__init__()
         self.badges = {}    #badge_type -> counter
         self.counter = 0    #activity
         self.photo = None
@@ -60,6 +61,7 @@ class Photo(Persistent):
 class Post(Folder):
 
     def __init__(self, author, text, date=None, is_reply=True):
+        super(Post, self).__init__()
         self.author = author
         self.editor = None
         self.text = text
@@ -102,13 +104,13 @@ class Post(Folder):
 class Topic(Folder):
 
     def __init__(self, title, text, user, date=None):
+        super(Topic, self).__init__()
         self.title = title
         self.votes = 0
         self['question'] = question = Post(user, text, date, is_reply=False)
         self.author = question.author
         self.answer = None
-        when = self.created = self.modified = question.created
-        self.hotness = hotness(when, 0)
+        self.hotness = hotness(self.created, 0)
         award_badges('new_topic', user, topic=self)
 
     @property
@@ -117,22 +119,22 @@ class Topic(Folder):
 
     @property
     def modified(self):
-        return max([x.modified for x in self])
+        return max([x.modified for x in self.values()])
 
     def accept_answer(self, post):
         """Accept a post as answer.
         """
-        if post.identifier not in self:
+        if post.__parent__ is not self:
             raise ValueError('that post does not belong to the topic')
         if self.answer is not None:
             self.answer.is_answer = False
-            loser = self.answer.author
-            loser.reputation -= settings.REPUTATION_MAP['LOSE_ON_LOST_ANSWER']
+            # XXX
+            #loser = self.answer.author
+            #loser.reputation -= settings.REPUTATION_MAP['LOSE_ON_LOST_ANSWER']
         post.is_answer = True
-        gainer = post.author
-        gainer.reputation += settings.REPUTATION_MAP['GAIN_ON_ACCEPTED_ANSWER']
-        self.answer_author = post.author
-        self.answer_date = post.created
+        # XXX
+        #gainer = post.author
+        #gainer.reputation += settings.REPUTATION_MAP['GAIN_ON_ACCEPTED_ANSWER']
         self.answer = post
         award_badges('accept', post.author, topic=self, post=post)
 

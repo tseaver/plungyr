@@ -1,5 +1,7 @@
 import unittest
 
+_MARKER = object()
+
 
 class _Base(unittest.TestCase):
 
@@ -112,15 +114,14 @@ class ProfileTests(_Base):
             self.assertEqual(profile.last_activity, AFTER)
 
 
-_marker = object()
 class PhotoTests(_Base):
 
     def _getTargetClass(self):
         from ..models import Photo
         return Photo
 
-    def _makeOne(self, file=_marker):
-        if file is _marker:
+    def _makeOne(self, file=_MARKER):
+        if file is _MARKER:
             return self._getTargetClass()()
         return self._getTargetClass()(file)
 
@@ -147,13 +148,9 @@ class PostTests(_Base):
 
     def test_ctor_no_date_not_reply(self):
         from datetime import datetime
-        from pyramid.testing import DummyModel
         from .. import models
         WHEN = datetime.now()
-        user = DummyModel(points=0, badges={})
-        def touch_activity(points):
-            user.points += points
-        user.touch_activity = touch_activity
+        user = _User()
         with _Monkey(models, _NOW=WHEN):
             post = self._makeOne(user, 'TEXT', is_reply=False)
             self.failUnless(post.author is user)
@@ -171,12 +168,8 @@ class PostTests(_Base):
 
     def test_ctor_w_date_and_is_reply(self):
         from datetime import datetime
-        from pyramid.testing import DummyModel
         WHEN = datetime.now()
-        user = DummyModel(points=0, badges={})
-        def touch_activity(points):
-            user.points += points
-        user.touch_activity = touch_activity
+        user = _User()
         post = self._makeOne(user, 'TEXT', WHEN, is_reply=True)
         self.failUnless(post.author is user)
         self.assertEqual(post.editor, None)
@@ -195,14 +188,10 @@ class PostTests(_Base):
     def test_edit_no_date_no_editor_no___parent__(self):
         from datetime import datetime
         from datetime import timedelta
-        from pyramid.testing import DummyModel
         from .. import models
         BEFORE = datetime.now()
         AFTER = BEFORE + timedelta(1)
-        user = DummyModel(points=0, badges={})
-        def touch_activity(points):
-            user.points += points
-        user.touch_activity = touch_activity
+        user = _User()
         with _Monkey(models, _NOW=BEFORE):
             post = self._makeOne(user, 'TEXT')
         with _Monkey(models, _NOW=AFTER):
@@ -215,20 +204,13 @@ class PostTests(_Base):
     def test_edit_w_date_w_editor_w___parent__(self):
         from datetime import datetime
         from datetime import timedelta
-        from pyramid.testing import DummyModel
         from repoze.folder import Folder
         from .. import models
         parent = Folder()
         BEFORE = datetime.now()
         AFTER = BEFORE + timedelta(1)
-        class User(DummyModel):
-            def __init__(self):
-                self.points = 0
-                self.badges = {}
-            def touch_activity(self, points):
-                self.points += points
-        author = User()
-        editor = User()
+        author = _User()
+        editor = _User()
         with _Monkey(models, _NOW=BEFORE):
             parent['testing'] = post = self._makeOne(author, 'TEXT')
         post.edit('NEW TEXT', editor, AFTER)
@@ -238,6 +220,77 @@ class PostTests(_Base):
         self.assertEqual(editor.points, 20)
         self.assertEqual(editor.badges, {'editor': [None]})
         self.failUnless('hotness' in parent.__dict__)
+
+
+class TopicTests(_Base):
+
+    def _getTargetClass(self):
+        from ..models import Topic
+        return Topic
+
+    def _makeOne(self, title, text, user, date=None):
+        return self._getTargetClass()(title, text, user, date)
+
+    def test_ctor_no_date(self):
+        from datetime import datetime
+        from .. import models
+        WHEN = datetime.now()
+        user = _User()
+        with _Monkey(models, _NOW=WHEN):
+            topic = self._makeOne('TITLE', 'TEXT', user)
+        self.assertEqual(topic.title, 'TITLE')
+        self.assertEqual(topic.votes, 0)
+        self.assertEqual(topic.author, user)
+        self.assertEqual(topic.answer, None)
+        self.assertEqual(topic.hotness, models.hotness(WHEN, 0))
+        self.assertEqual(topic.created, WHEN)
+        self.assertEqual(topic.modified, WHEN)
+        question = topic['question']
+        self.assertEqual(question.author, user)
+        self.assertEqual(question.text, 'TEXT')
+        self.assertEqual(question.created, WHEN)
+        self.assertEqual(question.modified, WHEN)
+        self.assertEqual(question.is_question, True)
+        self.assertEqual(question.is_answer, False)
+
+    def test_accept_answer_w_non_contained_answer(self):
+        from ..models import Post
+        author = _User()
+        topic = self._makeOne('TITLE', 'TEXT', author)
+        shooter = _User()
+        bogus = Post(shooter, 'ANSWER')
+        self.assertRaises(ValueError, topic.accept_answer, bogus)
+
+    def test_accept_answer_w_real_answer(self):
+        from ..models import Post
+        author = _User()
+        topic = self._makeOne('TITLE', 'TEXT', author)
+        shooter = _User()
+        reply = topic['reply'] = Post(shooter, 'ANSWER')
+        topic.accept_answer(reply)
+        self.failUnless(topic.answer is reply)
+        self.failUnless(reply.is_answer)
+
+    def test_accept_answer_w_prior_answer(self):
+        from ..models import Post
+        author = _User()
+        topic = self._makeOne('TITLE', 'TEXT', author)
+        shooter = _User()
+        good = topic['good'] = Post(shooter, 'ANSWER')
+        topic.accept_answer(good)
+        better = topic['better'] = Post(shooter, 'ANSWER')
+        topic.accept_answer(better)
+        self.failUnless(topic.answer is better)
+        self.failIf(good.is_answer)
+        self.failUnless(better.is_answer)
+
+
+class _User(object):
+    def __init__(self):
+        self.points = 0
+        self.badges = {}
+    def touch_activity(self, points):
+        self.points += points
 
 
 class _Monkey(object):
