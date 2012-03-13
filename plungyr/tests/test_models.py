@@ -78,6 +78,26 @@ class PlungyrTests(_Base):
         self.failUnless(isinstance(plungyr['profiles'], Folder))
 
 
+class ProfileTests(_Base):
+
+    def _getTargetClass(self):
+        from ..models import Profile
+        return Profile
+
+    def _makeOne(self):
+        return self._getTargetClass()()
+
+    def test_ctor(self):
+        from datetime import datetime
+        when = datetime.now()
+        with _Monkey(models, _NOW=WHEN):
+            plungyr = self._makeOne()
+            self.assertEqual(plungyr.badges, {})
+            self.assertEqual(plungyr.counter, 0)
+            self.assertEqual(plungyr.photo, None)
+            self.assertEqual(plungyr.last_activity, WHEN)
+
+
 class _Monkey(object):
 
     def __init__(self, module, **replacements):
