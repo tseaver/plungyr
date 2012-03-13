@@ -92,11 +92,24 @@ class ProfileTests(_Base):
         from .. import models
         WHEN = datetime.now()
         with _Monkey(models, _NOW=WHEN):
-            plungyr = self._makeOne()
-            self.assertEqual(plungyr.badges, {})
-            self.assertEqual(plungyr.counter, 0)
-            self.assertEqual(plungyr.photo, None)
-            self.assertEqual(plungyr.last_activity, WHEN)
+            profile = self._makeOne()
+            self.assertEqual(profile.badges, {})
+            self.assertEqual(profile.counter, 0)
+            self.assertEqual(profile.photo, None)
+            self.assertEqual(profile.last_activity, WHEN)
+
+    def test_touch_activity(self):
+        from datetime import datetime
+        from datetime import timedelta
+        from .. import models
+        BEFORE = datetime.now()
+        AFTER = BEFORE + timedelta(1)
+        with _Monkey(models, _NOW=BEFORE):
+            profile = self._makeOne()
+        with _Monkey(models, _NOW=AFTER):
+            profile.touch_activity(20)
+            self.assertEqual(profile.counter, 20)
+            self.assertEqual(profile.last_activity, AFTER)
 
 
 class _Monkey(object):
