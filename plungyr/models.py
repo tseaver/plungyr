@@ -15,11 +15,15 @@ def _now():
 
 
 _EPOCH = datetime.datetime(1970, 1, 1)
-def hotness(created, votes, epoch=_EPOCH):
+_BASETIME = 1134028003 # 2005-12-8T007:46:42Z
+
+def hotness(created, votes, epoch=None):
+    if epoch is None:
+        epoch = _EPOCH
     # algorithm from code.reddit.com by CondeNet, Inc.
     delta = created - epoch
     secs = (delta.days * 86400 + delta.seconds +
-            (delta.microseconds / 1e6)) - 1134028003
+            (delta.microseconds / 1e6)) - _BASETIME
     order = math.log(max(abs(votes), 1), 10)
     sign = 1 if votes > 0 else -1 if votes < 0 else 0
     return round(order + sign * secs / 45000, 7)
