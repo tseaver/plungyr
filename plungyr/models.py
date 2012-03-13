@@ -12,11 +12,12 @@ def _now():
     if _NOW is not None:
         return _NOW
     return datetime.utcnow()
-    
 
-def _hotness(created, votes):
+
+_EPOCH = datetime.datetime(1970, 1, 1)
+def hotness(created, votes, epoch=_EPOCH):
     # algorithm from code.reddit.com by CondeNet, Inc.
-    delta = created - datetime(1970, 1, 1)
+    delta = created - epoch
     secs = (delta.days * 86400 + delta.seconds +
             (delta.microseconds / 1e6)) - 1134028003
     order = math.log(max(abs(votes), 1), 10)
@@ -27,8 +28,8 @@ def _hotness(created, votes):
 class Plungyr(Folder):
     __parent__ = __name__ = None
     def __init__(self):
+        super(Plungyr, self).__init__()
         self['profiles'] = Folder()
-        self['topics'] = Folder()
 
 
 class Profile(Folder):
@@ -86,7 +87,7 @@ class Post(Folder):
         self.text = new_text
         self.editor = editor
         self.modified = date
-        self.topic.hotness = _hotness(date, 0)
+        self.topic.hotness = hotness(date, 0)
         self.edits += 1
 
         award_badges('edit', editor, post=self)
@@ -102,7 +103,7 @@ class Topic(Folder):
         self.author = question.author
         self.answer = None
         when = self.created = self.modified = question.created
-        self.hotness = _hotness(when, 0)
+        self.hotness = hotness(when, 0)
         award_badges('new_topic', user, topic=self)
 
     @property
