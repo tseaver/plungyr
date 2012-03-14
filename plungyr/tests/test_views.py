@@ -1,6 +1,6 @@
 import unittest
 
-class ViewTests(unittest.TestCase):
+class _Base(unittest.TestCase):
 
     def setUp(self):
         from pyramid.testing import setUp
@@ -9,6 +9,17 @@ class ViewTests(unittest.TestCase):
     def tearDown(self):
         from pyramid.testing import tearDown
         tearDown()
+
+    def failUnless(self, predicate):
+        # Suppress unittest nannyism
+        super(_Base, self).assertTrue(predicate)
+
+    def failIf(self, predicate):
+        # Suppress unittest nannyism
+        super(_Base, self).assertFalse(predicate)
+
+
+class ViewTests(_Base):
 
     def _callFUT(self, context, request):
         from ..views import plungyr_main
