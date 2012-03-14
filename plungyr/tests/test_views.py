@@ -10,11 +10,11 @@ class _Base(unittest.TestCase):
         from pyramid.testing import tearDown
         tearDown()
 
-    def failUnless(self, predicate):
+    def failUnless(self, predicate): #pragma NO COVER
         # Suppress unittest nannyism
         super(_Base, self).assertTrue(predicate)
 
-    def failIf(self, predicate):
+    def failIf(self, predicate): #pragma NO COVER
         # Suppress unittest nannyism
         super(_Base, self).assertFalse(predicate)
 

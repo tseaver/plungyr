@@ -54,13 +54,6 @@ class Test__hotness(_Base):
             hotness = self._callFUT(when, votes)
             self.failUnless(hotness > last)
             last = hotness
-        # Downvotes also increase hotness
-        last = -1e6
-        for dateargs, votes in _CHECKING[0:3:-1]:
-            when = datetime(*dateargs)
-            hotness = self._callFUT(when, votes)
-            self.failUnless(hotness > last)
-            last = hotness
 
 
 class PlungyrTests(_Base):
@@ -331,5 +324,5 @@ class _Monkey(object):
         for k, v in self.replacements.items():
             if k in self.orig:
                 setattr(self.module, k, self.orig[k])
-            else:
+            else: #pragma NO COVERSGE
                 delattr(self.module, k)
