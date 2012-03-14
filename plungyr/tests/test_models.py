@@ -285,6 +285,26 @@ class TopicTests(_Base):
         self.failUnless(better.is_answer)
 
 
+class Test_appmaker(_Base):
+
+    def _callFUT(self, zodb_root):
+        from .. import appmaker
+        return appmaker(zodb_root)
+
+    def test_no_existing_app_root(self):
+        from ..models import Plungyr
+        zodb_root = {}
+        root = self._callFUT(zodb_root)
+        self.failUnless(zodb_root['app_root'] is root)
+        self.failUnless(isinstance(root, Plungyr))
+
+    def test_w_existing_app_root(self):
+        _robj = object()
+        zodb_root = {'app_root': _robj}
+        root = self._callFUT(zodb_root)
+        self.failUnless(root is _robj)
+
+
 class _User(object):
     def __init__(self):
         self.points = 0
