@@ -5,10 +5,12 @@ from pyramid import testing
 class ViewTests(unittest.TestCase):
 
     def setUp(self):
-        self.config = testing.setUp()
+        from pyramid.testing import setUp
+        self.config = setUp()
 
     def tearDown(self):
-        testing.tearDown()
+        from pyramid.testing import tearDown
+        tearDown()
 
     def _callFUT(self, context, request):
         from ..views import plungyr_main
@@ -16,7 +18,9 @@ class ViewTests(unittest.TestCase):
         
 
     def test_my_view(self):
-        context = testing.DummyModel()
-        request = testing.DummyRequest()
+        from pyramid.testing import DummyModel
+        from pyramid.testing import DummyRequest
+        context = DummyModel()
+        request = DummyRequest()
         info = self._callFUT(context, request)
         self.assertEqual(info['purl'], 'http://example.com/')
