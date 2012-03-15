@@ -46,3 +46,16 @@ class Test_root_factory(_Base):
         request = DummyRequest(_zodb_conn=_Conn())
         root = self._callFUT(request)
         self.failUnless(root is _robj)
+
+
+class Test_main(_Base):
+
+    def _callFUT(self, global_config, **settings):
+        from .. import main
+        return main(global_config, **settings)
+
+    def test_it(self):
+        from .. import root_factory
+        config = {}
+        wsgi_app = self._callFUT(config)
+        self.failUnless(wsgi_app.root_factory is root_factory)
