@@ -25,15 +25,15 @@
 <body>
   <div id="wrap">
     <div id="top">
-      <div class="top align-center">
+      <div class="top-small">
         <div>
-          <img src="/static/pyramid.png" width="750" height="169"
+          <img src="/static/pyramid-small.png"
                alt="pyramid"/>
         </div>
       </div>
     </div>
     <div id="middle">
-      <div class="middle align-center">
+      <div class="middle">
         <p class="app-welcome">
           This is Plungyr, a surly tech support site.  You have been warned.
         </p>
