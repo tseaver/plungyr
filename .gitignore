@@ -2,3 +2,4 @@
 Data.fs*
 *.egg-info
 *.pyc
+venv
